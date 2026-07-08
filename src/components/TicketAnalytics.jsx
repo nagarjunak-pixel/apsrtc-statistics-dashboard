@@ -1,8 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Ticket, Users, TrendingUp, Info } from 'lucide-react';
+import { Ticket, Users, TrendingUp, Info, ShieldCheck, ClipboardCheck, ArrowRight } from 'lucide-react';
+import { STREE_SHAKTI_CLAIMS } from '../data/apsrtcData';
 
 export default function TicketAnalytics({ ticketData, theme }) {
+  const [subTab, setSubTab] = useState('bookings'); // 'bookings' or 'stree_shakti'
+
   // Aggregate Seater vs Sleeper
   const aggregates = useMemo(() => {
     let sleeperVolume = 0;
@@ -11,7 +14,6 @@ export default function TicketAnalytics({ ticketData, theme }) {
     let seaterRevenue = 0;
 
     ticketData.forEach(item => {
-      // Split Night Rider mixed capacity: 50% sleeper, 50% seater
       if (item.id === 'night_rider') {
         const halfTickets = item.monthlyTickets / 2;
         sleeperVolume += halfTickets;
@@ -28,8 +30,8 @@ export default function TicketAnalytics({ ticketData, theme }) {
     });
 
     return {
-      sleeper: { volume: sleeperVolume, revenue: sleeperRevenue / 10000000 }, // to Cr
-      seater: { volume: seaterVolume, revenue: seaterRevenue / 10000000 } // to Cr
+      sleeper: { volume: sleeperVolume, revenue: sleeperRevenue / 10000000 },
+      seater: { volume: seaterVolume, revenue: seaterRevenue / 10000000 }
     };
   }, [ticketData]);
 
@@ -75,8 +77,6 @@ export default function TicketAnalytics({ ticketData, theme }) {
   // ECharts Occupancy bar chart option
   const chartOptionOccupancy = useMemo(() => {
     const isDark = theme === 'dark';
-    
-    // Sort ticket categories by occupancy rate
     const sortedData = [...ticketData].sort((a, b) => b.occupancyRate - a.occupancyRate);
     const names = sortedData.map(d => d.id.replace('_', ' ').toUpperCase());
     const occupancyRates = sortedData.map(d => d.occupancyRate);
@@ -129,118 +129,219 @@ export default function TicketAnalytics({ ticketData, theme }) {
 
   return (
     <div className="space-y-6">
-      {/* Visual Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Share Chart */}
-        <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
-          <h3 className="text-sm font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
-            <Ticket className="h-4 w-4 text-blue-500" /> Ticket Volume Distribution (Sleeper vs Seater)
-          </h3>
-          <p className="text-xs text-zinc-500 mb-4">
-            Comparison of monthly tickets booked by sleeper berth vs passenger seats
-          </p>
-          <div className="h-[230px]">
-            <ReactECharts option={chartOptionShare} style={{ height: '100%', width: '100%' }} />
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-2 border-t border-zinc-100 dark:border-zinc-800/80 pt-3">
-            <div>
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase">Sleeper Coach Volume</span>
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50 font-mono">
-                {Math.round(aggregates.sleeper.volume).toLocaleString()} Tickets/mo
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase">Seating Coach Volume</span>
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50 font-mono">
-                {Math.round(aggregates.seater.volume).toLocaleString()} Tickets/mo
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Occupancy Chart */}
-        <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
-          <h3 className="text-sm font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
-            <Users className="h-4 w-4 text-emerald-500" /> Passenger Occupancy Ratio (OR) by Class
-          </h3>
-          <p className="text-xs text-zinc-500 mb-4">
-            Percentage of occupied capacity per dispatch service (Average OR: 92%)
-          </p>
-          <div className="h-[230px]">
-            <ReactECharts option={chartOptionOccupancy} style={{ height: '100%', width: '100%' }} />
-          </div>
+      {/* Sub-tabs */}
+      <div className="flex justify-between items-center bg-zinc-100/50 dark:bg-zinc-900/10 p-2 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-colors">
+        <span className="text-xs font-semibold text-zinc-500 pl-2">Ticket Bookings Analytics</span>
+        <div className="flex gap-1 bg-zinc-200/50 dark:bg-[#09090b] p-1 rounded-lg">
+          <button
+            onClick={() => setSubTab('bookings')}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              subTab === 'bookings'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            Commuter Ticket Statistics
+          </button>
+          <button
+            onClick={() => setSubTab('stree_shakti')}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              subTab === 'stree_shakti'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            Stree Shakti Claims Portal
+          </button>
         </div>
       </div>
 
-      {/* Ticket Metrics Table */}
-      <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden transition-colors">
-        <div className="p-5 border-b border-zinc-100 dark:border-zinc-800">
-          <h3 className="text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1">
-            Detailed Ticket Bookings Analysis
-          </h3>
-          <p className="text-xs text-zinc-500">
-            Granular revenue and capacity calculations per vehicle classification
-          </p>
-        </div>
+      {subTab === 'stree_shakti' ? (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Claims Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors">
+              <span className="text-[10px] text-zinc-500 font-semibold uppercase">Total Claims Disbursed</span>
+              <h4 className="text-2xl font-extrabold text-zinc-950 dark:text-zinc-50 font-mono mt-1">₹351.3 Cr</h4>
+              <p className="text-[10px] text-zinc-400 mt-1">Released by Finance Dept (FY25/26)</p>
+            </div>
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors">
+              <span className="text-[10px] text-zinc-500 font-semibold uppercase">Claims Under Audit</span>
+              <h4 className="text-2xl font-extrabold text-zinc-950 dark:text-zinc-50 font-mono mt-1 text-amber-500">₹192.2 Cr</h4>
+              <p className="text-[10px] text-zinc-400 mt-1">Pending approval (May 2026 Batch)</p>
+            </div>
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors">
+              <span className="text-[10px] text-zinc-500 font-semibold uppercase">Avg Audit Cycle</span>
+              <h4 className="text-2xl font-extrabold text-zinc-950 dark:text-zinc-50 font-mono mt-1 text-blue-500">22 Days</h4>
+              <p className="text-[10px] text-zinc-400 mt-1">Turnaround from submission to payout</p>
+            </div>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-4">Service Category</th>
-                <th className="px-6 py-4 text-right">Avg Ticket Fare</th>
-                <th className="px-6 py-4 text-right">Monthly Tickets</th>
-                <th className="px-6 py-4 text-right">Occupancy Rate</th>
-                <th className="px-6 py-4 text-right">Monthly Revenue</th>
-                <th className="px-6 py-4 text-right">Trips / Day</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 text-xs text-zinc-900 dark:text-zinc-200">
-              {ticketData.map(item => {
-                const monthlyRev = (item.monthlyTickets * item.avgFare) / 10000000; // in Cr
-                return (
-                  <tr key={item.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors">
-                    <td className="px-6 py-4 font-bold">
-                      {item.id.replace('_', ' ').toUpperCase()}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-semibold">
-                      ₹{item.avgFare}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-zinc-600 dark:text-zinc-300">
-                      {item.monthlyTickets.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono">
-                      <span className={`px-2 py-0.5 rounded-full font-bold ${
-                        item.occupancyRate >= 92 
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400' 
-                          : item.occupancyRate >= 88
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400'
-                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
-                      }`}>
-                        {item.occupancyRate}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
-                      ₹{monthlyRev.toFixed(2)} Cr
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-zinc-500">
-                      {item.tripsPerDay}
-                    </td>
+          {/* Claims pipeline timeline table */}
+          <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden transition-colors">
+            <div className="p-5 border-b border-zinc-100 dark:border-zinc-800">
+              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+                Stree Shakti Treasury Payouts Timeline
+              </h3>
+              <p className="text-[11px] text-zinc-500">
+                Audit logs tracking reimbursement status for zero-fare ticket transactions
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Claim ID</th>
+                    <th className="px-6 py-4">Accounting Month</th>
+                    <th className="px-6 py-4 text-right">Commuter Tickets</th>
+                    <th className="px-6 py-4 text-right">Reimbursement Amount</th>
+                    <th className="px-6 py-4">Filing Date</th>
+                    <th className="px-6 py-4">Treasury Status</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 text-xs text-zinc-900 dark:text-zinc-200">
+                  {STREE_SHAKTI_CLAIMS.map(claim => (
+                    <tr key={claim.claimId} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors">
+                      <td className="px-6 py-4 font-mono font-bold">{claim.claimId}</td>
+                      <td className="px-6 py-4 font-semibold">{claim.month}</td>
+                      <td className="px-6 py-4 text-right font-mono">{(claim.ticketsIssued / 1000000).toFixed(1)} M</td>
+                      <td className="px-6 py-4 text-right font-mono font-bold text-blue-600 dark:text-blue-400">₹{claim.claimAmount} Cr</td>
+                      <td className="px-6 py-4 text-zinc-500">{claim.date}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          claim.status === 'Released'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400'
+                            : claim.status === 'Audited'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400'
+                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
+                        }`}>
+                          {claim.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* Visual Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-200">
+            {/* Share Chart */}
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
+              <h3 className="text-sm font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
+                <Ticket className="h-4 w-4 text-blue-500" /> Ticket Volume Distribution (Sleeper vs Seater)
+              </h3>
+              <p className="text-xs text-zinc-500 mb-4">
+                Comparison of monthly tickets booked by sleeper berth vs passenger seats
+              </p>
+              <div className="h-[230px]">
+                <ReactECharts option={chartOptionShare} style={{ height: '100%', width: '100%' }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-2 border-t border-zinc-100 dark:border-zinc-800/80 pt-3">
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-semibold uppercase">Sleeper Coach Volume</span>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50 font-mono">
+                    {Math.round(aggregates.sleeper.volume).toLocaleString()} Tickets/mo
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-semibold uppercase">Seating Coach Volume</span>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50 font-mono">
+                    {Math.round(aggregates.seater.volume).toLocaleString()} Tickets/mo
+                  </p>
+                </div>
+              </div>
+            </div>
 
-        {/* Info panel */}
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900/30 border-t border-zinc-100 dark:border-zinc-800 flex gap-2.5 items-center text-zinc-500 dark:text-zinc-400 text-xs">
-          <Info className="h-4 w-4 text-blue-500 shrink-0" />
-          <span>
-            <b>Fare Calculations:</b> Tickets sold count includes free-travel tickets claimed under the <i>Stree Shakti</i> scheme, which are reimbursed by the Government of Andhra Pradesh at standard fare values.
-          </span>
-        </div>
-      </div>
+            {/* Occupancy Chart */}
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
+              <h3 className="text-sm font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-emerald-500" /> Passenger Occupancy Ratio (OR) by Class
+              </h3>
+              <p className="text-xs text-zinc-500 mb-4">
+                Percentage of occupied capacity per dispatch service (Average OR: 92%)
+              </p>
+              <div className="h-[230px]">
+                <ReactECharts option={chartOptionOccupancy} style={{ height: '100%', width: '100%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Ticket Metrics Table */}
+          <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden transition-colors">
+            <div className="p-5 border-b border-zinc-100 dark:border-zinc-800">
+              <h3 className="text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1">
+                Detailed Ticket Bookings Analysis
+              </h3>
+              <p className="text-xs text-zinc-500">
+                Granular revenue and capacity calculations per vehicle classification
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Service Category</th>
+                    <th className="px-6 py-4 text-right">Avg Ticket Fare</th>
+                    <th className="px-6 py-4 text-right">Monthly Tickets</th>
+                    <th className="px-6 py-4 text-right">Occupancy Rate</th>
+                    <th className="px-6 py-4 text-right">Monthly Revenue</th>
+                    <th className="px-6 py-4 text-right">Trips / Day</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 text-xs text-zinc-900 dark:text-zinc-200">
+                  {ticketData.map(item => {
+                    const monthlyRev = (item.monthlyTickets * item.avgFare) / 10000000;
+                    return (
+                      <tr key={item.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors">
+                        <td className="px-6 py-4 font-bold">
+                          {item.id.replace('_', ' ').toUpperCase()}
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono font-semibold">
+                          ₹{item.avgFare}
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono text-zinc-600 dark:text-zinc-300">
+                          {item.monthlyTickets.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono">
+                          <span className={`px-2 py-0.5 rounded-full font-bold ${
+                            item.occupancyRate >= 92 
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400' 
+                              : item.occupancyRate >= 88
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
+                          }`}>
+                            {item.occupancyRate}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
+                          ₹{monthlyRev.toFixed(2)} Cr
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono text-zinc-500">
+                          {item.tripsPerDay}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Info panel */}
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900/30 border-t border-zinc-100 dark:border-zinc-800 flex gap-2.5 items-center text-zinc-500 dark:text-zinc-400 text-xs">
+              <Info className="h-4 w-4 text-blue-500 shrink-0" />
+              <span>
+                <b>Fare Calculations:</b> Tickets sold count includes free-travel tickets claimed under the <i>Stree Shakti</i> scheme, which are reimbursed by the Government of Andhra Pradesh at standard fare values.
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

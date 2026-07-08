@@ -1,16 +1,56 @@
-# React + Vite
+# APSrtc Statistics Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> Web app (Node/JS) · generated docs
 
-Currently, two official plugins are available:
+## What this is
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+`APSrtc Statistics Dashboard` is a web app (node/js) located at `antigravity/`.
 
-## React Compiler
+## Project structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+📄 .gitignore
+📁 .netlify
+📄 .oxlintrc.json
+📄 README.md
+📄 index.html
+📄 package-lock.json
+📄 package.json
+📄 postcss.config.js
+📁 public
+📁 src
+📄 tailwind.config.js
+📄 vite.config.js
+```
 
-## Expanding the Oxlint configuration
+## Entry point(s)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- `index.html`
+
+## How to run (Node)
+
+```bash
+npm install
+npm run dev   # or: npm start
+```
+
+### npm scripts
+
+- `dev`: `vite`
+- `build`: `vite build`
+- `lint`: `oxlint`
+- `preview`: `vite preview`
+
+## How to work on it
+
+1. Read the structure above to find the entry point.
+2. Set up the environment (see run steps).
+3. Make a change, run locally, verify.
+4. Commit: `git add -A && git commit -m 'change'` and push.
+
+## Repository
+Source: https://github.com/nagarjunak-pixel/apsrtc-statistics-dashboard.git
+
+
+---
+_Docs generated 2026-07-08 for Surya Agentic Academy teaching._

@@ -1,8 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { DollarSign, ShieldAlert, Award, TrendingDown } from 'lucide-react';
+import { DollarSign, ShieldAlert, Award, TrendingUp, Package, MoveRight } from 'lucide-react';
+import { CARGO_MONTHLY } from '../data/apsrtcData';
 
 export default function FinancialAnalytics({ financialData, theme }) {
+  const [subTab, setSubTab] = useState('general'); // 'general' or 'cargo'
+
   // Aggregate calculations
   const summary = useMemo(() => {
     let revSum = 0;
@@ -188,115 +191,256 @@ export default function FinancialAnalytics({ financialData, theme }) {
     };
   }, [financialData, theme]);
 
+  // ECharts Cargo trends option
+  const chartOptionCargo = useMemo(() => {
+    const isDark = theme === 'dark';
+    const months = CARGO_MONTHLY.map(d => d.month);
+    const packages = CARGO_MONTHLY.map(d => d.packages);
+    const revenues = CARGO_MONTHLY.map(d => d.revenue);
+
+    return {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: isDark ? '#1e1e24' : 'rgba(255, 255, 255, 0.95)',
+        borderColor: isDark ? '#27272a' : '#e4e4e7',
+        textStyle: { color: isDark ? '#fafafa' : '#09090b', fontSize: 11 }
+      },
+      legend: {
+        data: ['Packages Handled', 'Logistics Revenue'],
+        textStyle: { color: isDark ? '#a1a1aa' : '#52525b', fontFamily: 'DM Sans, sans-serif' }
+      },
+      grid: {
+        top: '15%',
+        left: '5%',
+        right: '5%',
+        bottom: '10%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: months,
+        axisLabel: { color: isDark ? '#a1a1aa' : '#52525b', fontFamily: 'DM Sans, sans-serif' },
+        axisLine: { lineStyle: { color: isDark ? '#27272a' : '#e4e4e7' } }
+      },
+      yAxis: [
+        {
+          type: 'value',
+          name: 'Packages',
+          axisLabel: { color: isDark ? '#a1a1aa' : '#52525b' },
+          splitLine: { lineStyle: { color: isDark ? '#1e1e24' : '#f4f4f5' } }
+        },
+        {
+          type: 'value',
+          name: 'Revenue (₹ Cr)',
+          axisLabel: { color: isDark ? '#a1a1aa' : '#52525b', formatter: '₹{value} Cr' },
+          splitLine: { show: false }
+        }
+      ],
+      series: [
+        {
+          name: 'Packages Handled',
+          type: 'bar',
+          data: packages,
+          itemStyle: { color: '#8b5cf6', borderRadius: [4, 4, 0, 0] }
+        },
+        {
+          name: 'Logistics Revenue',
+          type: 'line',
+          yAxisIndex: 1,
+          data: revenues,
+          itemStyle: { color: '#10b981' },
+          lineStyle: { width: 3 }
+        }
+      ]
+    };
+  }, [theme]);
+
   return (
     <div className="space-y-6">
-      {/* Month-on-Month Trends */}
-      <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
-        <h3 className="text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
-          <DollarSign className="h-5 w-5 text-blue-500" /> Historical MoM Revenues vs Expenditures
-        </h3>
-        <p className="text-xs text-zinc-500 mb-6">
-          12-Month financial profile displaying cash inflows, operating expenses, and net profit margins
-        </p>
-        <div className="h-[320px]">
-          <ReactECharts option={chartOptionMoM} style={{ height: '100%', width: '100%' }} />
+      {/* Sub-tabs */}
+      <div className="flex justify-between items-center bg-zinc-100/50 dark:bg-zinc-900/10 p-2 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-colors">
+        <span className="text-xs font-semibold text-zinc-500 pl-2">Financial Operations</span>
+        <div className="flex gap-1 bg-zinc-200/50 dark:bg-[#09090b] p-1 rounded-lg">
+          <button
+            onClick={() => setSubTab('general')}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              subTab === 'general'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            General Revenue vs Expense
+          </button>
+          <button
+            onClick={() => setSubTab('cargo')}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              subTab === 'cargo'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            Logistics & Cargo Hub
+          </button>
         </div>
       </div>
 
-      {/* Breakdowns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Breakdown */}
-        <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
-          <div>
-            <h4 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 mb-1">
-              Monthly Revenue Inflows Breakdown
-            </h4>
+      {subTab === 'cargo' ? (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Cargo KPI Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors flex items-center gap-3">
+              <div className="p-2 bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 font-semibold uppercase">Total Parcels Handled</span>
+                <h4 className="text-lg font-bold text-zinc-950 dark:text-zinc-50 font-mono mt-0.5">779,000 Pkgs</h4>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors flex items-center gap-3">
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 font-semibold uppercase">Parcels Net Weight</span>
+                <h4 className="text-lg font-bold text-zinc-950 dark:text-zinc-50 font-mono mt-0.5">2,950 Tons</h4>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm transition-colors flex items-center gap-3">
+              <div className="p-2 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 font-semibold uppercase">Logistics Revenue</span>
+                <h4 className="text-lg font-bold text-zinc-950 dark:text-zinc-50 font-mono mt-0.5">₹126.5 Cr</h4>
+              </div>
+            </div>
+          </div>
+
+          {/* Cargo Trends Chart */}
+          <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors">
+            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 mb-1">
+              Logistics Month-on-Month Cargo Traffic
+            </h3>
             <p className="text-xs text-zinc-500 mb-4">
-              Latest Month (June 2026) distribution of fare and non-fare box assets
+              Comparison of package handling volumes and corresponding logistics cargo revenues
             </p>
-            <div className="h-[200px] my-3">
-              <ReactECharts option={chartOptionRevBreakdown} style={{ height: '100%', width: '100%' }} />
-            </div>
-          </div>
-          <div className="space-y-1.5 text-xs border-t border-zinc-100 dark:border-zinc-800/80 pt-3 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" /> Passenger Cash Fares:
-              </span>
-              <span className="font-mono font-bold">~₹320 Cr (54%)</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#06b6d4]" /> Stree Shakti Reimbursements:
-              </span>
-              <span className="font-mono font-bold">~₹170 Cr (28%)</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#10b981]" /> Logistics / Cargo Inflow:
-              </span>
-              <span className="font-mono font-bold">~₹19 Cr (3.2%)</span>
+            <div className="h-[280px]">
+              <ReactECharts option={chartOptionCargo} style={{ height: '100%', width: '100%' }} />
             </div>
           </div>
         </div>
+      ) : (
+        <>
+          {/* Month-on-Month Trends */}
+          <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors animate-in fade-in duration-200">
+            <h3 className="text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50 mb-1 flex items-center gap-1.5">
+              <DollarSign className="h-5 w-5 text-blue-500" /> Historical MoM Revenues vs Expenditures
+            </h3>
+            <p className="text-xs text-zinc-500 mb-6">
+              12-Month financial profile displaying cash inflows, operating expenses, and net profit margins
+            </p>
+            <div className="h-[320px]">
+              <ReactECharts option={chartOptionMoM} style={{ height: '100%', width: '100%' }} />
+            </div>
+          </div>
 
-        {/* Expense Breakdown */}
-        <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
-          <div>
-            <h4 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 mb-1">
-              Monthly Operating Expenditures Breakdown
-            </h4>
-            <p className="text-xs text-zinc-500 mb-4">
-              Latest Month (June 2026) operations expenditure breakdown
-            </p>
-            <div className="h-[200px] my-3">
-              <ReactECharts option={chartOptionExpBreakdown} style={{ height: '100%', width: '100%' }} />
+          {/* Breakdowns */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-200">
+            {/* Revenue Breakdown */}
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 mb-1">
+                  Monthly Revenue Inflows Breakdown
+                </h4>
+                <p className="text-xs text-zinc-500 mb-4">
+                  Latest Month (June 2026) distribution of fare and non-fare box assets
+                </p>
+                <div className="h-[200px] my-3">
+                  <ReactECharts option={chartOptionRevBreakdown} style={{ height: '100%', width: '100%' }} />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs border-t border-zinc-100 dark:border-zinc-800/80 pt-3 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" /> Passenger Cash Fares:
+                  </span>
+                  <span className="font-mono font-bold">~₹320 Cr (54%)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#06b6d4]" /> Stree Shakti Reimbursements:
+                  </span>
+                  <span className="font-mono font-bold">~₹170 Cr (28%)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#10b981]" /> Logistics / Cargo Inflow:
+                  </span>
+                  <span className="font-mono font-bold">~₹19 Cr (3.2%)</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="space-y-1.5 text-xs border-t border-zinc-100 dark:border-zinc-800/80 pt-3 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Fuel & Power (diesel/EV):
-              </span>
-              <span className="font-mono font-bold">~₹178 Cr (29%)</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Personnel & Salaries:
-              </span>
-              <span className="font-mono font-bold">~₹218 Cr (36%)</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#6366f1]" /> Fixed Deposit to Govt:
-              </span>
-              <span className="font-mono font-bold">₹120 Cr (19.8%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Financial Health Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-100/50 dark:bg-zinc-900/10 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <div className="flex gap-3">
-          <ShieldAlert className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <h5 className="font-bold text-zinc-950 dark:text-zinc-50">Operational Deficit Assistance</h5>
-            <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              APSRTC maintains an average operating net deficit of around ₹15.2 Crore monthly due to subsidized travel rates and a high fixed deposit mandate. This deficit is offset via direct equity support and quarterly subsidies from the Government of Andhra Pradesh.
-            </p>
+            {/* Expense Breakdown */}
+            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 mb-1">
+                  Monthly Operating Expenditures Breakdown
+                </h4>
+                <p className="text-xs text-zinc-500 mb-4">
+                  Latest Month (June 2026) operations expenditure breakdown
+                </p>
+                <div className="h-[200px] my-3">
+                  <ReactECharts option={chartOptionExpBreakdown} style={{ height: '100%', width: '100%' }} />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs border-t border-zinc-100 dark:border-zinc-800/80 pt-3 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Fuel & Power (diesel/EV):
+                  </span>
+                  <span className="font-mono font-bold">~₹178 Cr (29%)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Personnel & Salaries:
+                  </span>
+                  <span className="font-mono font-bold">~₹218 Cr (36%)</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#6366f1]" /> Fixed Deposit to Govt:
+                  </span>
+                  <span className="font-mono font-bold">₹120 Cr (19.8%)</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex gap-3">
-          <Award className="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <h5 className="font-bold text-zinc-950 dark:text-zinc-50">Zero-Fare Reimbursement Security</h5>
-            <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              Under the state's <i>Stree Shakti</i> initiative, the corporation is fully protected. Zero-fare tickets issued are logged, validated, and reimbursed directly by the treasury on a 30-day billing cycle, contributing around 28% of total operating revenue.
-            </p>
+
+          {/* Financial Health Indicators */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-100/50 dark:bg-zinc-900/10 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <div className="flex gap-3">
+              <ShieldAlert className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <h5 className="font-bold text-zinc-950 dark:text-zinc-50">Operational Deficit Assistance</h5>
+                <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  APSRTC maintains an average operating net deficit of around ₹15.2 Crore monthly due to subsidized travel rates and a high fixed deposit mandate. This deficit is offset via direct equity support and quarterly subsidies from the Government of Andhra Pradesh.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Award className="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <h5 className="font-bold text-zinc-950 dark:text-zinc-50">Zero-Fare Reimbursement Security</h5>
+                <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  Under the state's <i>Stree Shakti</i> initiative, the corporation is fully protected. Zero-fare tickets issued are logged, validated, and reimbursed directly by the treasury on a 30-day billing cycle, contributing around 28% of total operating revenue.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

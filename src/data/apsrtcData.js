@@ -54,33 +54,20 @@ export const FLEET_CATEGORIES = {
   }
 };
 
-// Flattened list of all bus categories with simulated monthly metrics (Avg Tickets, Price, OR)
+// Flattened list of all bus categories with simulated monthly metrics
 export const BUS_CATEGORIES_METRICS = [
-  // AC Sleeper
   { id: "vennela", categoryId: "ac", avgFare: 1100, monthlyTickets: 105000, occupancyRate: 85, capacity: 24, tripsPerDay: 2 },
   { id: "star_liner", categoryId: "non_ac_premium", avgFare: 750, monthlyTickets: 185000, occupancyRate: 88, capacity: 30, tripsPerDay: 2 },
-  
-  // AC Seater
   { id: "amaravathi", categoryId: "ac", avgFare: 850, monthlyTickets: 310000, occupancyRate: 86, capacity: 48, tripsPerDay: 2 },
   { id: "dolphin_cruise", categoryId: "ac", avgFare: 900, monthlyTickets: 110000, occupancyRate: 87, capacity: 44, tripsPerDay: 2 },
   { id: "garuda", categoryId: "ac", avgFare: 800, monthlyTickets: 250000, occupancyRate: 88, capacity: 44, tripsPerDay: 2 },
   { id: "indra", categoryId: "ac", avgFare: 620, monthlyTickets: 510000, occupancyRate: 89, capacity: 40, tripsPerDay: 2 },
   { id: "green_sapthagiri", categoryId: "ac", avgFare: 300, monthlyTickets: 220000, occupancyRate: 91, capacity: 40, tripsPerDay: 3 },
-  
-  // AC Mixed
   { id: "night_rider", categoryId: "ac", avgFare: 950, monthlyTickets: 115000, occupancyRate: 86, capacity: 30, tripsPerDay: 2 },
-  
-  // Non-AC Premium Seater
   { id: "super_luxury", categoryId: "non_ac_premium", avgFare: 480, monthlyTickets: 5800000, occupancyRate: 90, capacity: 36, tripsPerDay: 2.2 },
   { id: "ultra_deluxe", categoryId: "non_ac_premium", avgFare: 350, monthlyTickets: 7200000, occupancyRate: 91, capacity: 40, tripsPerDay: 2.4 },
-  
-  // Express (General)
   { id: "express", categoryId: "express", avgFare: 210, monthlyTickets: 32000000, occupancyRate: 92, capacity: 52, tripsPerDay: 3 },
-  
-  // Rural (General)
   { id: "telugu_velugu", categoryId: "ordinary_rural", avgFare: 45, monthlyTickets: 63000000, occupancyRate: 93, capacity: 55, tripsPerDay: 3.5 },
-  
-  // City
   { id: "metro_express", categoryId: "city_urban", avgFare: 30, monthlyTickets: 12000000, occupancyRate: 92, capacity: 42, tripsPerDay: 6 },
   { id: "metro_deluxe", categoryId: "city_urban", avgFare: 40, monthlyTickets: 5200000, occupancyRate: 90, capacity: 38, tripsPerDay: 6 },
   { id: "metro_luxury_ac", categoryId: "city_urban", avgFare: 75, monthlyTickets: 1150000, occupancyRate: 85, capacity: 35, tripsPerDay: 5 },
@@ -88,7 +75,6 @@ export const BUS_CATEGORIES_METRICS = [
 ];
 
 // Historical 12-Month Financial Performance (FY 2025-2026)
-// Figures are in Crores of Rupees (₹ 1 Crore = 10,000,000 INR)
 export const MONTHLY_FINANCIALS = [
   {
     month: "Jul 2025",
@@ -106,7 +92,7 @@ export const MONTHLY_FINANCIALS = [
     expense: { personnel: 215.8, fuel: 173.5, hireCharges: 72.0, maintenance: 47.5, govtDeposit: 120.0, others: 18.0 }
   },
   {
-    month: "Oct 2025", // Festive (Dussehra)
+    month: "Oct 2025",
     revenue: { fare: 345.8, streeShakti: 182.1, logistics: 21.0, commercial: 41.5, subsidies: 48.0 },
     expense: { personnel: 222.0, fuel: 188.5, hireCharges: 77.5, maintenance: 52.0, govtDeposit: 120.0, others: 20.2 }
   },
@@ -121,7 +107,7 @@ export const MONTHLY_FINANCIALS = [
     expense: { personnel: 218.2, fuel: 179.8, hireCharges: 74.0, maintenance: 49.8, govtDeposit: 120.0, others: 19.1 }
   },
   {
-    month: "Jan 2026", // Major Peak (Sankranti Festival)
+    month: "Jan 2026",
     revenue: { fare: 385.2, streeShakti: 198.8, logistics: 24.5, commercial: 45.0, subsidies: 52.0 },
     expense: { personnel: 228.5, fuel: 205.2, hireCharges: 82.5, maintenance: 56.5, govtDeposit: 120.0, others: 22.4 }
   },
@@ -141,7 +127,7 @@ export const MONTHLY_FINANCIALS = [
     expense: { personnel: 220.8, fuel: 185.5, hireCharges: 75.5, maintenance: 51.2, govtDeposit: 120.0, others: 19.8 }
   },
   {
-    month: "May 2026", // Summer Holiday Peak
+    month: "May 2026",
     revenue: { fare: 370.5, streeShakti: 192.2, logistics: 23.8, commercial: 44.5, subsidies: 50.0 },
     expense: { personnel: 225.0, fuel: 198.2, hireCharges: 80.0, maintenance: 55.0, govtDeposit: 120.0, others: 21.5 }
   },
@@ -152,23 +138,74 @@ export const MONTHLY_FINANCIALS = [
   }
 ];
 
-// Helper to calculate financials summing all nested fields
-export const getAggregateFinancials = (dataList = MONTHLY_FINANCIALS) => {
-  let totalRevenue = 0;
-  let totalExpense = 0;
-  
-  dataList.forEach(m => {
-    const revSum = Object.values(m.revenue).reduce((a, b) => a + b, 0);
-    const expSum = Object.values(m.expense).reduce((a, b) => a + b, 0);
-    totalRevenue += revSum;
-    totalExpense += expSum;
-  });
-  
-  return {
-    totalRevenue,
-    totalExpense,
-    netMargin: totalRevenue - totalExpense,
-    avgMonthlyRevenue: totalRevenue / dataList.length,
-    avgMonthlyExpense: totalExpense / dataList.length
-  };
-};
+// District / Regional Weights
+export const DISTRICTS = [
+  { id: "all", name: "All Districts (AP State)", fleetMult: 1.0, occMult: 1.0, revMult: 1.0, evCount: 100 },
+  { id: "vijayawada", name: "Vijayawada (NTR)", fleetMult: 0.22, occMult: 1.02, revMult: 0.24, evCount: 30 },
+  { id: "visakhapatnam", name: "Visakhapatnam", fleetMult: 0.28, occMult: 0.98, revMult: 0.31, evCount: 20 },
+  { id: "tirupati", name: "Tirupati (Chittoor)", fleetMult: 0.18, occMult: 1.05, revMult: 0.17, evCount: 50 },
+  { id: "guntur", name: "Guntur", fleetMult: 0.18, occMult: 0.93, revMult: 0.16, evCount: 0 },
+  { id: "kadapa", name: "Kadapa (YSR District)", fleetMult: 0.14, occMult: 0.88, revMult: 0.12, evCount: 0 }
+];
+
+// EV Charging infrastructure depot analytics
+export const EV_DEPOT_CHARGING = [
+  { depot: "Alipiri Depot (Tirupati)", totalChargers: 50, avgUtilization: 88, activeBuses: 50, powerConsMo: 185000 },
+  { depot: "Pandit Nehru BS Depot (Vijayawada)", totalChargers: 40, avgUtilization: 75, activeBuses: 30, powerConsMo: 112000 },
+  { depot: "Maddilapalem Depot (Visakhapatnam)", totalChargers: 30, avgUtilization: 65, activeBuses: 20, powerConsMo: 74000 }
+];
+
+// Cargo & Logistics Monthly Performance
+export const CARGO_MONTHLY = [
+  { month: "Jan 2026", packages: 125000, tonnage: 450, revenue: 24.5 },
+  { month: "Feb 2026", packages: 110000, tonnage: 410, revenue: 17.5 },
+  { month: "Mar 2026", packages: 132000, tonnage: 480, revenue: 20.2 },
+  { month: "Apr 2026", packages: 138000, tonnage: 510, revenue: 21.0 },
+  { month: "May 2026", packages: 145000, tonnage: 530, revenue: 23.8 },
+  { month: "Jun 2026", packages: 129000, tonnage: 470, revenue: 19.0 }
+];
+
+// Stree Shakti claims pipeline status
+export const STREE_SHAKTI_CLAIMS = [
+  { claimId: "CLM-2026-06", month: "June 2026", ticketsIssued: 48500000, claimAmount: 170.1, status: "Submitted", date: "Jun 28, 2026" },
+  { claimId: "CLM-2026-05", month: "May 2026", ticketsIssued: 52000000, claimAmount: 192.2, status: "Audited", date: "May 29, 2026" },
+  { claimId: "CLM-2026-04", month: "April 2026", ticketsIssued: 49500000, claimAmount: 177.5, status: "Released", date: "Apr 29, 2026" },
+  { claimId: "CLM-2026-03", month: "March 2026", ticketsIssued: 48200000, claimAmount: 173.8, status: "Released", date: "Mar 30, 2026" }
+];
+
+// Live GPS Coordinates for simulation
+export const GPS_MARKERS = [
+  { id: "bus1", route: "Vijayawada - Visakhapatnam", lat: 16.989068, lng: 82.247467, speed: 65, delay: 10, category: "Amaravathi", fuel: 72 },
+  { id: "bus2", route: "Tirupati - Vijayawada", lat: 14.681888, lng: 79.809570, speed: 58, delay: 0, category: "Green Sapthagiri", fuel: 84 },
+  { id: "bus3", route: "Hyderabad - Tirupati", lat: 15.828579, lng: 78.037109, speed: 70, delay: 20, category: "Vennela", fuel: 55 },
+  { id: "bus4", route: "Guntur - Vijayawada", lat: 16.425330, lng: 80.528656, speed: 45, delay: 5, category: "Express", fuel: 62 },
+  { id: "bus5", route: "Nellore - Tirupati", lat: 14.150000, lng: 79.850000, speed: 62, delay: 0, category: "Super Luxury", fuel: 90 }
+];
+
+// AI chatbot query matching keywords
+export const AI_KNOWLEDGE_RULES = [
+  {
+    keywords: ["ev", "electric", "charger", "charging", "sapthagiri", "sustainability"],
+    response: "APSRTC operates 100 'Green Sapthagiri' electric buses. These EV buses operate with a 91% occupancy ratio, primarily clustered in Tirupati (50 charging slots at Alipiri depot) and Vijayawada (40 slots at PNBS). The EV fleet saves about 60% in fuel costs and 30% in maintenance compared to diesel."
+  },
+  {
+    keywords: ["revenue", "fare", "money", "profit", "loss", "margin", "commercial"],
+    response: "The average monthly revenue is ₹600.3 Crore (including ₹320 Cr in fares, ₹170 Cr in Stree Shakti reimbursements, ₹20 Cr in logistics, and ₹42 Cr in rentals). Average monthly operating expenses are ₹615 Crore, resulting in a net margin deficit of about -₹15.2 Crore per month, subsidized by the Government of Andhra Pradesh."
+  },
+  {
+    keywords: ["stree shakti", "free", "women", "reimbursement", "claims"],
+    response: "The Stree Shakti free travel scheme handles around 48 to 52 million zero-fare tickets monthly, accounting for ~₹170 to ₹192 Crore in revenue claims. These claims undergo auditing (usually completing in 22 days) and are fully reimbursed by the Government of Andhra Pradesh."
+  },
+  {
+    keywords: ["occupancy", "or", "traffic", "passengers", "tickets"],
+    response: "APSRTC operates at an average occupancy ratio of 92% across all tiers. Ordinary rural buses (Telugu Velugu) record the highest average occupancy at 93%, carrying ~63 million passengers monthly. Express services carry ~32 million monthly tickets at a 92% occupancy rate."
+  },
+  {
+    keywords: ["fleet", "buses", "categories", "ac", "hired", "owned"],
+    response: "APSRTC operates a total fleet of 10,951 buses, consisting of 8,199 owned and 2,752 hired vehicles. The breakdown includes: Premium AC Services (920 buses), Premium Non-AC (2,417 buses), Express Services (2,300 buses), Ordinary Rural Telugu Velugu (4,383 buses), and City/Urban buses (931 buses)."
+  },
+  {
+    keywords: ["logistics", "cargo", "packages", "tonnage"],
+    response: "APSRTC logistics and cargo services contribute ~₹20 Crore monthly. In the latest period, they handled 129,000 packages (470 tons) in June 2026, earning ₹19.0 Crore. Tonnage peaked in May 2026 at 530 tons, generating ₹23.8 Crore."
+  }
+];
